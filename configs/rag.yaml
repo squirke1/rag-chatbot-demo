@@ -1,1 +1,62 @@
-# chunk size, k, model names
+# RAG Chatbot Configuration
+# This file contains all the settings for your RAG system
+
+# Document Processing Settings
+document:
+  chunk_size: 1000              # Characters per chunk (balance between context and specificity)
+  chunk_overlap: 200            # Overlap between chunks (helps maintain context)
+  supported_formats: 
+    - "pdf"
+    - "txt" 
+    - "md"
+    - "html"
+    - "docx"
+
+# Embedding Model Configuration  
+embeddings:
+  model: "sentence-transformers/all-MiniLM-L6-v2"  # Fast, good quality embeddings
+  dimension: 384                # Vector dimension (depends on model)
+  batch_size: 32               # Process chunks in batches for efficiency
+
+# Vector Store Settings
+vector_store:
+  type: "faiss"                # Vector database type
+  index_path: "./data/vector_index"  # Where to save the index
+  similarity_metric: "cosine"   # How to measure similarity
+
+# Retrieval Configuration
+retrieval:
+  top_k: 5                     # Number of documents to retrieve
+  score_threshold: 0.7         # Minimum similarity score (0-1)
+  search_type: "similarity"    # Options: "similarity", "mmr", "hybrid"
+  mmr_lambda: 0.7             # MMR diversity vs relevance (0=max diversity, 1=max relevance)
+
+# Language Model Settings
+llm:
+  provider: "openai"           # Options: "openai", "huggingface", "ollama"
+  model: "gpt-3.5-turbo"      # Model name
+  max_tokens: 1000            # Maximum response length
+  temperature: 0.1            # Response creativity (0=deterministic, 1=creative)
+
+# API Configuration  
+api:
+  host: "0.0.0.0"             # Host to bind to
+  port: 8000                  # Port to run on
+  cors_origins:               # Allowed origins for CORS
+    - "http://localhost:3000"
+    - "http://localhost:8080"
+
+# Evaluation Settings
+evaluation:
+  metrics:                    # Metrics to calculate
+    - "answer_relevancy"
+    - "context_relevancy" 
+    - "groundedness"
+    - "faithfulness"
+  test_data_path: "./data/eval_qa_pairs.json"
+
+# Logging Configuration
+logging:
+  level: "INFO"               # Log level: DEBUG, INFO, WARNING, ERROR
+  file: "./logs/rag_demo.log" # Log file path
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
