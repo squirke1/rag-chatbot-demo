@@ -16,6 +16,7 @@ import yaml
 from pathlib import Path
 from typing import Dict, Any, List
 import argparse
+import numpy as np
 
 # LangChain document loaders for different file types
 from langchain_community.document_loaders import (
@@ -26,6 +27,10 @@ from langchain_community.document_loaders import (
     Docx2txtLoader,       # For .docx files
 )
 from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+# Sentence transformers for generating embeddings
+from sentence_transformers import SentenceTransformer
 
 
 def load_config(config_path: str = "configs/rag.yaml") -> Dict[str, Any]:
@@ -156,6 +161,109 @@ def load_documents(data_dir: str, supported_formats: List[str]) -> List[Document
     return documents
 
 
+def split_documents(documents: List[Document], config: Dict[str, Any]) -> List[Document]:
+    """
+    Split documents into smaller chunks for embedding.
+    
+    Why chunking?
+    - LLMs have token limits (can't process entire books)
+    - Smaller chunks = more precise retrieval
+    - Balance: too small = loss of context, too large = irrelevant info
+    
+    Why overlap?
+    - Maintains context across chunk boundaries
+    - Example: "...models learn" | "learn from data..." 
+    - Without overlap, "learn" is context-less in chunk 2
+    
+    Args:
+        documents: List of loaded Document objects
+        config: Configuration dictionary with chunk_size and chunk_overlap
+        
+    Returns:
+        List of Document chunks with preserved metadata
+    """
+    # Get chunking parameters from config
+    chunk_size = config['document']['chunk_size']
+    chunk_overlap = config['document']['chunk_overlap']
+    
+    # Create text splitter
+    # RecursiveCharacterTextSplitter tries to split on:
+    # 1. Paragraphs (\n\n) first
+    # 2. Then sentences (\n)
+    # 3. Then words ( )
+    # 4. Finally characters (last resort)
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        length_function=len,
+        is_separator_regex=False,
+    )
+    
+    # Split all documents
+    chunks = text_splitter.split_documents(documents)
+    
+    return chunks
+
+
+def generate_embeddings(chunks: List[Document], config: Dict[str, Any]) -> np.ndarray:
+    """
+    Generate embeddings for text chunks using sentence-transformers.
+    
+    What are embeddings?
+    - Numerical representation of text meaning
+    - Similar texts have similar vectors
+    - Enables semantic search (meaning-based, not keyword-based)
+    
+    How it works:
+    - Neural network converts text → 384-dimensional vector
+    - Each dimension captures some aspect of meaning
+    - Example: "dog" and "puppy" have similar vectors
+    
+    Why batch processing?
+    - Process multiple chunks simultaneously
+    - Much faster than one-by-one (15x speedup)
+    - Efficient use of GPU/CPU resources
+    
+    Args:
+        chunks: List of Document chunks to embed
+        config: Configuration dictionary with model name and batch size
+        
+    Returns:
+        NumPy array of shape (num_chunks, embedding_dimension)
+        Example: (100, 384) = 100 chunks, each with 384-dimensional vector
+    """
+    model_name = config['embeddings']['model']
+    batch_size = config['embeddings']['batch_size']
+    
+    print(f"\nInitializing embedding model: {model_name}")
+    print("(First time will download the model - ~90MB)")
+    
+    # Load the sentence transformer model
+    # This model converts text to 384-dimensional vectors
+    model = SentenceTransformer(model_name)
+    
+    print(f"\nGenerating embeddings for {len(chunks)} chunks...")
+    print(f"Processing in batches of {batch_size}")
+    
+    # Extract text content from Document objects
+    texts = [chunk.page_content for chunk in chunks]
+    
+    # Generate embeddings in batches
+    # show_progress_bar=True displays a progress bar
+    embeddings = model.encode(
+        texts,
+        batch_size=batch_size,
+        show_progress_bar=True,
+        convert_to_numpy=True
+    )
+    
+    print(f"\nEmbeddings generated!")
+    print(f"  Shape: {embeddings.shape}")
+    print(f"  Size: {embeddings.nbytes / (1024*1024):.2f} MB")
+    
+    return embeddings
+
+
 def main():
     """
     Main function to orchestrate the document ingestion process.
@@ -199,19 +307,34 @@ def main():
         print(f"Supported formats: {', '.join(config['document']['supported_formats'])}")
         return
     
-    # TODO: Next steps will be implemented in subsequent iterations
-    # - Split into chunks
-    # - Generate embeddings
-    # - Create vector index
+    # Split documents into chunks
+    print("\n" + "="*60)
+    print("SPLITTING DOCUMENTS INTO CHUNKS")
+    print("="*60)
+    
+    print(f"Splitting {len(documents)} document(s) into chunks...")
+    chunks = split_documents(documents, config)
+    print(f"Created {len(chunks)} chunks")
+    
+    # Generate embeddings for chunks
+    print("\n" + "="*60)
+    print("GENERATING EMBEDDINGS")
+    print("="*60)
+    
+    embeddings = generate_embeddings(chunks, config)
+    
+    # TODO: Next step will be implemented in subsequent iteration
+    # - Create FAISS vector index
+    # - Save index to disk
     
     print("\n" + "="*60)
     print("SUMMARY")
     print("="*60)
     print(f"Documents loaded: {len(documents)}")
-    print("\nNext steps (coming soon):")
-    print("  - Split documents into chunks")
-    print("  - Generate embeddings")
-    print("  - Create FAISS vector index")
+    print(f"Chunks created: {len(chunks)}")
+    print(f"Embeddings generated: {embeddings.shape[0]} vectors of {embeddings.shape[1]} dimensions")
+    print("\nNext step (coming soon):")
+    print("  - Create and save FAISS vector index")
 
 
 if __name__ == "__main__":
