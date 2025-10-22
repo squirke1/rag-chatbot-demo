@@ -319,7 +319,7 @@ def create_vector_index(
     # Add embeddings to the index
     # FAISS requires float32 format
     embeddings_float32 = embeddings.astype('float32')
-    index.add(embeddings_float32)
+    index.add(embeddings_float32)  # type: ignore
     
     print(f"  Vectors added to index: {index.ntotal}")
     
