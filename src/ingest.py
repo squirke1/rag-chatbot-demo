@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Dict, Any, List
 import argparse
 import numpy as np
+import pickle
 
 # LangChain document loaders for different file types
 from langchain_community.document_loaders import (
@@ -31,6 +32,9 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Sentence transformers for generating embeddings
 from sentence_transformers import SentenceTransformer
+
+# FAISS for vector similarity search
+import faiss
 
 
 def load_config(config_path: str = "configs/rag.yaml") -> Dict[str, Any]:
@@ -264,6 +268,93 @@ def generate_embeddings(chunks: List[Document], config: Dict[str, Any]) -> np.nd
     return embeddings
 
 
+def create_vector_index(
+    embeddings: np.ndarray, 
+    chunks: List[Document], 
+    config: Dict[str, Any]
+) -> None:
+    """
+    Create a FAISS vector index and save it to disk along with document chunks.
+    
+    What is FAISS?
+    - Facebook AI Similarity Search
+    - Efficient library for searching similar vectors
+    - Can search millions of vectors in milliseconds
+    
+    What is a vector index?
+    - A data structure optimized for finding similar vectors
+    - Like a database index, but for numerical vectors
+    - Enables fast "semantic search" (search by meaning, not keywords)
+    
+    How it works:
+    1. Store all embeddings in the index
+    2. When user asks a question:
+       - Convert question to embedding
+       - Find K nearest neighbors in the index
+       - Return the corresponding documents
+    
+    Why save chunks separately?
+    - FAISS only stores vectors (numbers)
+    - We need the original text to show users
+    - Pickle file stores: text content, metadata, source info
+    
+    Args:
+        embeddings: NumPy array of shape (num_chunks, embedding_dim)
+        chunks: List of Document objects with text and metadata
+        config: Configuration dictionary with index path
+    """
+    dimension = config['embeddings']['dimension']
+    index_path = config['vector_store']['index_path']
+    
+    print(f"\nCreating FAISS index...")
+    print(f"  Dimension: {dimension}")
+    print(f"  Number of vectors: {len(embeddings)}")
+    
+    # Create FAISS index
+    # IndexFlatL2 uses L2 (Euclidean) distance
+    # "Flat" means it searches all vectors (exact search, no approximation)
+    # This is perfect for smaller datasets (< 1 million vectors)
+    index = faiss.IndexFlatL2(dimension)
+    
+    # Add embeddings to the index
+    # FAISS requires float32 format
+    embeddings_float32 = embeddings.astype('float32')
+    index.add(embeddings_float32)
+    
+    print(f"  Vectors added to index: {index.ntotal}")
+    
+    # Create directory if it doesn't exist
+    os.makedirs(index_path, exist_ok=True)
+    
+    # Save FAISS index
+    index_file = os.path.join(index_path, "faiss.index")
+    faiss.write_index(index, index_file)
+    print(f"\n  Saved FAISS index to: {index_file}")
+    
+    # Save document chunks (text + metadata)
+    # We need this to retrieve the actual text content later
+    chunks_file = os.path.join(index_path, "chunks.pkl")
+    with open(chunks_file, 'wb') as f:
+        pickle.dump(chunks, f)
+    print(f"  Saved {len(chunks)} chunks to: {chunks_file}")
+    
+    # Save configuration for reference
+    config_file = os.path.join(index_path, "config.pkl")
+    with open(config_file, 'wb') as f:
+        pickle.dump(config, f)
+    print(f"  Saved config to: {config_file}")
+    
+    print("\nVector index created successfully!")
+    print(f"Index location: {index_path}")
+    
+    # Display index statistics
+    print(f"\nIndex Statistics:")
+    print(f"  Total vectors: {index.ntotal}")
+    print(f"  Dimension: {dimension}")
+    print(f"  Index type: Flat (exact search)")
+    print(f"  Index size: {os.path.getsize(index_file) / (1024*1024):.2f} MB")
+
+
 def main():
     """
     Main function to orchestrate the document ingestion process.
@@ -323,18 +414,24 @@ def main():
     
     embeddings = generate_embeddings(chunks, config)
     
-    # TODO: Next step will be implemented in subsequent iteration
-    # - Create FAISS vector index
-    # - Save index to disk
+    # Create and save FAISS vector index
+    print("\n" + "="*60)
+    print("CREATING VECTOR INDEX")
+    print("="*60)
+    
+    create_vector_index(embeddings, chunks, config)
     
     print("\n" + "="*60)
-    print("SUMMARY")
+    print("INGESTION COMPLETE!")
     print("="*60)
-    print(f"Documents loaded: {len(documents)}")
+    print(f"Documents processed: {len(documents)}")
     print(f"Chunks created: {len(chunks)}")
     print(f"Embeddings generated: {embeddings.shape[0]} vectors of {embeddings.shape[1]} dimensions")
-    print("\nNext step (coming soon):")
-    print("  - Create and save FAISS vector index")
+    print(f"Index location: {config['vector_store']['index_path']}")
+    print("\nYour RAG system is ready!")
+    print("Next steps:")
+    print("  - Implement retriever.py for semantic search")
+    print("  - Test querying the vector database")
 
 
 if __name__ == "__main__":
