@@ -179,5 +179,132 @@ def similarity_search(
     return results
 
 
-# We'll add mmr_search() in the next step
-# We'll add print_results() and main() after that
+def mmr_search(
+    query: str,
+    index: faiss.Index,
+    chunks: List[Document],
+    model: SentenceTransformer,
+    k: int = 5,
+    fetch_k: int = 20,
+    lambda_mult: float = 0.5
+) -> List[Tuple[Document, float]]:
+    """
+    Maximal Marginal Relevance (MMR) search for diverse results.
+    
+    What is MMR?
+    - Balances relevance AND diversity
+    - Avoids returning multiple similar chunks
+    - Useful when chunks might be redundant
+    
+    Example scenario:
+    - Query: "What is Python?"
+    - Without MMR: Might return 5 chunks all from the same section
+    - With MMR: Returns chunks from different sections/topics
+    
+    How it works:
+    1. Fetch more candidates than needed (fetch_k = 20)
+    2. Select most relevant chunk first
+    3. For remaining selections, balance:
+       - Similarity to query (relevance)
+       - Dissimilarity to already selected chunks (diversity)
+    
+    Lambda parameter:
+    - lambda = 1.0: Pure relevance (same as similarity search)
+    - lambda = 0.5: Balanced (recommended)
+    - lambda = 0.0: Pure diversity (might return irrelevant docs)
+    
+    Args:
+        query: User's search query
+        index: FAISS index
+        chunks: Document chunks
+        model: Embedding model
+        k: Number of final results to return
+        fetch_k: Number of candidates to fetch initially
+        lambda_mult: Balance between relevance (1.0) and diversity (0.0)
+        
+    Returns:
+        List of (Document, distance) tuples with diverse results
+    """
+    print(f"\nMMR Query: '{query}'")
+    print(f"Fetching {fetch_k} candidates, selecting {k} diverse results...")
+    print(f"Lambda: {lambda_mult} (1.0=relevance, 0.0=diversity)")
+    
+    # Step 1: Get query embedding
+    query_embedding = model.encode([query], convert_to_numpy=True).astype('float32')
+    
+    # Step 2: Fetch more candidates than we need
+    distances, indices = index.search(query_embedding, fetch_k)  # type: ignore
+    distances = distances[0]
+    indices = indices[0]
+    
+    # Step 3: Get embeddings of candidate chunks
+    # We need these to measure diversity between candidates
+    candidate_embeddings = []
+    candidate_chunks = []
+    for idx in indices:
+        if idx < len(chunks):
+            candidate_chunks.append(chunks[idx])
+            # Reconstruct the embedding from the index
+            candidate_embeddings.append(index.reconstruct(int(idx)))  # type: ignore
+    
+    candidate_embeddings = np.array(candidate_embeddings)
+    
+    # Step 4: MMR selection algorithm
+    selected_indices = []
+    selected_embeddings = []
+    
+    # Always select the first (most relevant) document
+    selected_indices.append(0)
+    selected_embeddings.append(candidate_embeddings[0])
+    
+    # Step 5: Select remaining k-1 documents using MMR formula
+    while len(selected_indices) < k and len(selected_indices) < len(candidate_chunks):
+        best_score = -float('inf')
+        best_idx = None
+        
+        # Evaluate each non-selected candidate
+        for i, candidate_emb in enumerate(candidate_embeddings):
+            if i in selected_indices:
+                continue
+            
+            # Relevance: How similar is this to the query?
+            # Negative L2 distance (higher = more similar)
+            relevance = -np.linalg.norm(query_embedding[0] - candidate_emb)
+            
+            # Diversity: How different is this from already selected docs?
+            # Find maximum similarity to any selected doc
+            if len(selected_embeddings) > 0:
+                similarities = [
+                    -np.linalg.norm(candidate_emb - sel_emb)
+                    for sel_emb in selected_embeddings
+                ]
+                max_similarity = max(similarities)
+            else:
+                max_similarity = 0
+            
+            # MMR score: balance relevance and diversity
+            # Higher lambda = favor relevance
+            # Lower lambda = favor diversity
+            mmr_score = lambda_mult * relevance - (1 - lambda_mult) * max_similarity
+            
+            if mmr_score > best_score:
+                best_score = mmr_score
+                best_idx = i
+        
+        # Add the best candidate to selected set
+        if best_idx is not None:
+            selected_indices.append(best_idx)
+            selected_embeddings.append(candidate_embeddings[best_idx])
+    
+    # Step 6: Return selected chunks with their distances
+    results = []
+    for idx in selected_indices:
+        chunk = candidate_chunks[idx]
+        distance = float(np.linalg.norm(query_embedding[0] - candidate_embeddings[idx]))
+        results.append((chunk, distance))
+    
+    print(f"Selected {len(results)} diverse results")
+    return results
+
+
+# We'll add print_results() and main() in the next step
