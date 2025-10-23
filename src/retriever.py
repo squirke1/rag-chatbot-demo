@@ -118,6 +118,66 @@ def initialize_embedding_model(config: Dict[str, Any]) -> SentenceTransformer:
     return model
 
 
-# We'll add similarity_search() in the next step
-# We'll add mmr_search() after that
-# We'll add print_results() and main() at the end
+def similarity_search(
+    query: str,
+    index: faiss.Index,
+    chunks: List[Document],
+    model: SentenceTransformer,
+    k: int = 5
+) -> List[Tuple[Document, float]]:
+    """
+    Perform similarity search to find most relevant documents.
+    
+    How it works:
+    1. Convert query text to embedding vector
+    2. Search FAISS index for k nearest neighbors
+    3. Retrieve corresponding document chunks
+    4. Return chunks with similarity scores
+    
+    Distance vs Similarity:
+    - FAISS returns L2 distance (lower = more similar)
+    - Distance of 0 = identical vectors
+    - Distance increases as vectors differ
+    
+    Args:
+        query: User's search query
+        index: FAISS index containing document embeddings
+        chunks: List of document chunks (same order as index)
+        model: Embedding model for query encoding
+        k: Number of results to return
+        
+    Returns:
+        List of (Document, distance_score) tuples, sorted by relevance
+    """
+    print(f"\nQuery: '{query}'")
+    print(f"Searching for top {k} similar chunks...")
+    
+    # Step 1: Convert query to embedding
+    # The model returns a 384-dimensional vector for our query
+    query_embedding = model.encode([query], convert_to_numpy=True)
+    
+    # Step 2: FAISS requires float32 type
+    query_embedding = query_embedding.astype('float32')
+    
+    # Step 3: Search the index
+    # Returns: distances (L2 distances), indices (positions in index)
+    # Lower distance = more similar
+    distances, indices = index.search(query_embedding, k)  # type: ignore
+    
+    # Step 4: Extract results (FAISS returns 2D arrays)
+    distances = distances[0]  # Get first row (we only searched one query)
+    indices = indices[0]      # Get first row
+    
+    # Step 5: Retrieve corresponding chunks
+    results = []
+    for idx, distance in zip(indices, distances):
+        if idx < len(chunks):  # Ensure index is valid
+            chunk = chunks[idx]
+            results.append((chunk, float(distance)))
+    
+    print(f"Found {len(results)} results")
+    return results
+
+
+# We'll add mmr_search() in the next step
+# We'll add print_results() and main() after that
