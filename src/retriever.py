@@ -307,4 +307,34 @@ def mmr_search(
     return results
 
 
-# We'll add print_results() and main() in the next step
+def print_results(results: List[Tuple[Document, float]], show_content: bool = True) -> None:
+    """
+    Display search results in a readable format.
+    
+    Args:
+        results: List of (Document, score) tuples
+        show_content: Whether to display full chunk content
+    """
+    print("\n" + "="*60)
+    print("SEARCH RESULTS")
+    print("="*60)
+    
+    for i, (doc, score) in enumerate(results, 1):
+        print(f"\n[{i}] Score: {score:.4f}")
+        
+        # Show metadata if available
+        if doc.metadata:
+            print(f"Source: {doc.metadata.get('source', 'Unknown')}")
+        
+        # Show content
+        if show_content:
+            content = doc.page_content
+            # Truncate if too long
+            if len(content) > 300:
+                content = content[:300] + "..."
+            print(f"Content: {content}")
+        
+        print("-" * 60)
+
+
+# We'll add main() CLI in the final step
