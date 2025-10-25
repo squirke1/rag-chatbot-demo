@@ -337,4 +337,90 @@ def print_results(results: List[Tuple[Document, float]], show_content: bool = Tr
         print("-" * 60)
 
 
-# We'll add main() CLI in the final step
+def main():
+    """
+    Main function for command-line retrieval testing.
+    
+    This CLI allows you to test the retriever with different:
+    - Queries
+    - Search methods (similarity vs MMR)
+    - Number of results (k)
+    - Lambda values for MMR
+    """
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Retrieve relevant documents using semantic search")
+    parser.add_argument(
+        "--query",
+        type=str,
+        required=True,
+        help="Search query"
+    )
+    parser.add_argument(
+        "--k",
+        type=int,
+        default=5,
+        help="Number of results to return (default: 5)"
+    )
+    parser.add_argument(
+        "--method",
+        type=str,
+        choices=["similarity", "mmr"],
+        default="similarity",
+        help="Search method: similarity or mmr (default: similarity)"
+    )
+    parser.add_argument(
+        "--lambda-mult",
+        type=float,
+        default=0.5,
+        help="MMR lambda multiplier for relevance vs diversity (default: 0.5)"
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/rag.yaml",
+        help="Path to configuration file (default: configs/rag.yaml)"
+    )
+    args = parser.parse_args()
+    
+    # Load configuration
+    print("Loading configuration...")
+    config = load_config(args.config)
+    index_path = config['vector_store']['index_path']
+    
+    # Load vector store
+    print("\n" + "="*60)
+    print("LOADING VECTOR STORE")
+    print("="*60)
+    index, chunks, stored_config = load_vector_store(index_path)
+    
+    # Initialize embedding model
+    model = initialize_embedding_model(stored_config)
+    
+    # Perform search
+    print("\n" + "="*60)
+    print(f"SEARCHING ({args.method.upper()} METHOD)")
+    print("="*60)
+    
+    if args.method == "similarity":
+        results = similarity_search(args.query, index, chunks, model, args.k)
+    elif args.method == "mmr":
+        results = mmr_search(
+            args.query, 
+            index, 
+            chunks, 
+            model, 
+            k=args.k,
+            lambda_mult=args.lambda_mult
+        )
+    
+    # Display results
+    print_results(results)
+    
+    print("\n" + "="*60)
+    print("RETRIEVAL COMPLETE")
+    print("="*60)
+
+
+if __name__ == "__main__":
+    main()
