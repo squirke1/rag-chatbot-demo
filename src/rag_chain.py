@@ -132,6 +132,81 @@ class RAGChain:
         # Extract just the documents (without scores)
         documents = [doc for doc, score in results]
         return documents
+    
+    def query(
+        self, 
+        question: str, 
+        method: str = "similarity",
+        return_context: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Complete RAG query: Retrieve → Compose → Generate
+        
+        This is the full RAG pipeline in action:
+        
+        Step 1 - RETRIEVE: Get relevant documents from vector store
+        Step 2 - COMPOSE: Format documents into prompt with question
+        Step 3 - GENERATE: Send to LLM and get answer
+        
+        Why RAG works:
+        - LLM gets specific, relevant context
+        - Reduces hallucination (LLM can't make stuff up)
+        - Answer is grounded in your documents
+        - Can cite sources in the response
+        
+        Args:
+            question: User's question
+            method: Retrieval method - "similarity" or "mmr"
+            return_context: If True, include retrieved documents in response
+            
+        Returns:
+            Dictionary with:
+            - answer: LLM's response
+            - sources: List of source documents (optional)
+            - context: Retrieved documents (if return_context=True)
+        """
+        print(f"\n{'='*60}")
+        print("RAG QUERY PIPELINE")
+        print(f"{'='*60}")
+        print(f"Question: {question}")
+        
+        # Step 1: RETRIEVE relevant documents
+        print(f"\nStep 1: Retrieving documents (method: {method})...")
+        documents = self.retrieve(question, method=method)
+        print(f"Retrieved {len(documents)} documents")
+        
+        # Step 2: COMPOSE prompt with context
+        print("\nStep 2: Composing prompt...")
+        messages = create_messages_format(question, documents)
+        
+        # Step 3: GENERATE answer using LLM
+        print("\nStep 3: Generating answer...")
+        try:
+            response = self.client.chat.completions.create(
+                model=self.llm_config['model'],
+                messages=messages,  # type: ignore
+                temperature=self.llm_config.get('temperature', 0.1),
+                max_tokens=self.llm_config.get('max_tokens', 1000)
+            )
+            
+            answer = response.choices[0].message.content
+            print("Answer generated successfully!")
+            
+        except Exception as e:
+            print(f"Error generating answer: {e}")
+            answer = f"Error: Could not generate answer. {str(e)}"
+        
+        # Prepare response
+        result = {
+            "answer": answer,
+            "sources": [doc.metadata.get('source', 'Unknown') for doc in documents]
+        }
+        
+        if return_context:
+            result["context"] = documents
+        
+        print(f"{'='*60}\n")
+        return result
 
 
-# We'll add query() method in the next step
+# We'll add CLI interface in the next step
