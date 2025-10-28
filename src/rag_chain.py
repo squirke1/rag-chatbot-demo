@@ -82,6 +82,56 @@ class RAGChain:
         """Load configuration from YAML file."""
         with open(config_path, 'r') as f:
             return yaml.safe_load(f)
+    
+    def retrieve(self, question: str, method: str = "similarity") -> List[Document]:
+        """
+        Retrieve relevant documents for a question.
+        
+        This is Step 1 of the RAG pipeline: RETRIEVE
+        
+        What happens here:
+        1. Convert question to embedding vector
+        2. Search FAISS index for similar documents
+        3. Return top-k most relevant chunks
+        
+        Why separate retrieve method?
+        - Can be used independently for testing
+        - Allows inspection of retrieved context
+        - Makes debugging easier
+        
+        Args:
+            question: User's question
+            method: Search method - "similarity" or "mmr"
+            
+        Returns:
+            List of relevant Document objects
+        """
+        k = self.retrieval_config.get('top_k', 5)
+        
+        if method == "similarity":
+            results = similarity_search(
+                query=question,
+                index=self.index,
+                chunks=self.chunks,
+                model=self.embedding_model,
+                k=k
+            )
+        elif method == "mmr":
+            lambda_mult = self.retrieval_config.get('mmr_lambda', 0.5)
+            results = mmr_search(
+                query=question,
+                index=self.index,
+                chunks=self.chunks,
+                model=self.embedding_model,
+                k=k,
+                lambda_mult=lambda_mult
+            )
+        else:
+            raise ValueError(f"Unknown retrieval method: {method}")
+        
+        # Extract just the documents (without scores)
+        documents = [doc for doc, score in results]
+        return documents
 
 
 # We'll add query() method in the next step
