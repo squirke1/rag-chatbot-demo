@@ -209,4 +209,87 @@ class RAGChain:
         return result
 
 
-# We'll add CLI interface in the next step
+def main():
+    """
+    CLI interface for testing the RAG chain.
+    
+    This allows you to:
+    - Ask questions interactively
+    - Test different retrieval methods
+    - See retrieved sources
+    - Verify the full pipeline works
+    """
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="RAG Question Answering System")
+    parser.add_argument(
+        "--question",
+        type=str,
+        required=True,
+        help="Question to ask"
+    )
+    parser.add_argument(
+        "--method",
+        type=str,
+        choices=["similarity", "mmr"],
+        default="similarity",
+        help="Retrieval method (default: similarity)"
+    )
+    parser.add_argument(
+        "--show-context",
+        action="store_true",
+        help="Show retrieved context documents"
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/rag.yaml",
+        help="Path to configuration file (default: configs/rag.yaml)"
+    )
+    args = parser.parse_args()
+    
+    # Initialize RAG chain
+    print("\n" + "="*60)
+    print("RAG QUESTION ANSWERING SYSTEM")
+    print("="*60)
+    rag = RAGChain(config_path=args.config)
+    
+    # Query the system
+    result = rag.query(
+        question=args.question,
+        method=args.method,
+        return_context=args.show_context
+    )
+    
+    # Display results
+    print("\n" + "="*60)
+    print("ANSWER")
+    print("="*60)
+    print(result['answer'])
+    
+    print("\n" + "="*60)
+    print("SOURCES")
+    print("="*60)
+    for i, source in enumerate(result['sources'], 1):
+        print(f"[{i}] {source}")
+    
+    # Show context if requested
+    if args.show_context and 'context' in result:
+        print("\n" + "="*60)
+        print("RETRIEVED CONTEXT")
+        print("="*60)
+        for i, doc in enumerate(result['context'], 1):
+            print(f"\n[{i}] Source: {doc.metadata.get('source', 'Unknown')}")
+            content = doc.page_content
+            if len(content) > 200:
+                content = content[:200] + "..."
+            print(f"Content: {content}")
+            print("-" * 60)
+    
+    print("\n" + "="*60)
+    print("QUERY COMPLETE")
+    print("="*60)
+
+
+if __name__ == "__main__":
+    main()
