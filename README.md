@@ -110,28 +110,40 @@ This process:
 
 ### Running the Application
 
-Start the FastAPI server:
+*Note: Web interface is currently in development. Use the CLI for now.*
+
+Query via command line:
 ```bash
-python app.py
+python src/rag_chain.py --question "What is RAG?"
 ```
 
-Access the web interface at `http://localhost:8000`
+Once the web app is complete, you'll be able to start the server:
+```bash
+uvicorn app:app --reload
+```
+
+And access the web interface at `http://localhost:8000`
 
 ### Command Line Interface
 
-Query the system directly:
+Query the RAG system directly:
 ```bash
-python src/rag_chain.py --question "What is machine learning?"
+python src/rag_chain.py --question "What is RAG?"
 ```
 
-Test retrieval:
+Use MMR retrieval for diversity:
 ```bash
-python src/retriever.py --query "artificial intelligence" --k 5
+python src/rag_chain.py --question "What is RAG?" --method mmr
 ```
 
-Run evaluation:
+Test retrieval only:
 ```bash
-python src/eval.py
+python src/retriever.py --query "RAG systems" --k 5 --method similarity
+```
+
+Show retrieved context:
+```bash
+python src/rag_chain.py --question "What is RAG?" --show-context
 ```
 
 ## Architecture
@@ -146,18 +158,34 @@ Documents → Ingest → Vector DB → Retriever → RAG Chain → Response
 ## Implementation Status
 
 **Completed:**
-- Project structure
-- Configuration system (`configs/rag.yaml`)
+- Project structure and configuration system
+- Document ingestion pipeline (`src/ingest.py`)
+  - Multi-format document loading
+  - Text chunking with overlap
+  - Batch embedding generation
+  - FAISS vector index creation
+- Retrieval system (`src/retriever.py`)
+  - Similarity search (top-k)
+  - MMR (Maximal Marginal Relevance)
+  - CLI for testing retrieval
+- Prompt management (`src/prompt.py`)
+  - System and user prompt templates
+  - Context formatting
+  - OpenAI messages format support
+- RAG chain (`src/rag_chain.py`)
+  - End-to-end question answering
+  - Retrieve → Compose → Generate pipeline
+  - CLI for testing Q&A
 
 **In Progress:**
-- Document ingestion (`src/ingest.py`)
+- Web application (`app.py`)
+  - FastAPI setup with lifespan management
+  - CORS middleware
+  - Request/response models
 
 **Planned:**
-- Retrieval system (`src/retriever.py`)
-- Prompt templates (`src/prompt.py`)
-- RAG chain (`src/rag_chain.py`)
-- Evaluation framework (`src/eval.py`)
-- Web application (`app.py`)
+- Web interface (HTML/JavaScript UI)
+- Evaluation framework (`src/eval.py`) - optional
 
 ## Technical Details
 
@@ -224,4 +252,5 @@ For questions or feedback, please open an issue on GitHub.
 
 ---
 
-*Status: Under Development*
+*Last Updated: October 29, 2025*  
+*Status: Core RAG pipeline complete, web interface in progress*
