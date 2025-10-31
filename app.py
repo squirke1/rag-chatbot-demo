@@ -116,4 +116,48 @@ class AnswerResponse(BaseModel):
     method_used: str
 
 
-# We'll add endpoints in the next step
+# ============================================================================
+# API Endpoints
+# ============================================================================
+
+@app.get("/")
+async def root():
+    """
+    Root endpoint - provides basic API information.
+    
+    What is this?
+    - The "home page" of the API
+    - Returns JSON with API metadata
+    
+    Why have a root endpoint?
+    - Quick way to check if API is running
+    - Provides discovery of other endpoints
+    - Shows version information
+    
+    Why async?
+    - FastAPI best practice - all endpoints should be async
+    - Allows handling multiple requests concurrently
+    - Even simple endpoints benefit from async
+    
+    What does it return?
+    - API name and version
+    - Status (always "running" if you get a response)
+    - Links to important endpoints
+    
+    Try it:
+    - Visit http://localhost:8000/
+    - Or curl http://localhost:8000/
+    """
+    return {
+        "name": "RAG Chatbot API",
+        "version": "1.0.0",
+        "status": "running",
+        "endpoints": {
+            "docs": "/docs",        # Interactive API documentation
+            "health": "/health",    # Health check for monitoring
+            "ask": "/ask"           # Main Q&A endpoint
+        }
+    }
+
+
+# We'll add more endpoints in the next steps
