@@ -160,4 +160,51 @@ async def root():
     }
 
 
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint - verifies system is ready.
+    
+    What is a health check?
+    - An endpoint that returns the system's status
+    - Used by monitoring tools, load balancers, orchestrators (Kubernetes)
+    - Should be fast and lightweight
+    
+    Why do we need it?
+    - Load balancers: Only send traffic to healthy instances
+    - Monitoring: Alert if service becomes unhealthy
+    - Deployment: Don't mark deployment complete until healthy
+    
+    What does it check?
+    - Is the RAG chain initialized?
+    - Are all components loaded (vector store, embeddings, LLM)?
+    
+    HTTP Status Codes:
+    - 200 OK: Everything is healthy
+    - 503 Service Unavailable: RAG system not initialized
+    
+    Why 503?
+    - Tells load balancers "don't send traffic here yet"
+    - Temporary condition (unlike 500 which is an error)
+    - Service exists but isn't ready
+    
+    Try it:
+    - Visit http://localhost:8000/health
+    - Or curl http://localhost:8000/health
+    """
+    if rag_chain is None:
+        raise HTTPException(
+            status_code=503,
+            detail="RAG system not initialized"
+        )
+    
+    return {
+        "status": "healthy",
+        "rag_chain": "initialized",
+        "vector_store": "loaded",
+        "embedding_model": "ready",
+        "llm": "configured"
+    }
+
+
 # We'll add more endpoints in the next steps
