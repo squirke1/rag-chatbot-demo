@@ -207,4 +207,94 @@ async def health_check():
     }
 
 
-# We'll add more endpoints in the next steps
+@app.post("/ask", response_model=AnswerResponse)
+async def ask_question(request: QuestionRequest):
+    """
+    Question-answering endpoint - the core of the RAG system.
+    
+    This is where the magic happens!
+    
+    The RAG Process:
+    1. Receive question from user
+    2. Convert question to embeddings (vector)
+    3. Search vector store for similar document chunks
+    4. Retrieve top-k most relevant chunks
+    5. Format chunks into context for the LLM
+    6. Send question + context to LLM
+    7. LLM generates answer based on retrieved context
+    8. Return answer with source references
+    
+    Why POST instead of GET?
+    - POST is for sending data (the question)
+    - GET is for retrieving resources
+    - POST body can handle larger/complex data
+    - POST requests aren't cached by browsers
+    
+    Why async?
+    - LLM API calls take 2-5 seconds typically
+    - async allows server to handle other requests during that time
+    - Without async: Server blocked, can only handle 1 request at a time
+    - With async: Server can juggle multiple requests concurrently
+    
+    Request Body (JSON):
+    {
+        "question": "What is RAG?",
+        "method": "similarity"  // optional: "similarity" or "mmr"
+    }
+    
+    Response (JSON):
+    {
+        "answer": "RAG stands for Retrieval-Augmented Generation...",
+        "sources": ["chunk_0", "chunk_1"],
+        "method_used": "similarity"
+    }
+    
+    Error Codes:
+    - 200: Success - answer generated
+    - 422: Validation error (Pydantic caught invalid request)
+    - 503: Service Unavailable (RAG system not initialized)
+    - 500: Internal error (LLM API failed, etc.)
+    
+    Try it:
+    - Interactive docs: http://localhost:8000/docs
+    - cURL example:
+      curl -X POST http://localhost:8000/ask \\
+           -H "Content-Type: application/json" \\
+           -d '{"question": "What is RAG?"}'
+    """
+    # Check if RAG system is ready
+    if rag_chain is None:
+        raise HTTPException(
+            status_code=503,
+            detail="RAG system not initialized. Please check logs."
+        )
+    
+    try:
+        # Call the RAG chain
+        # This orchestrates: retrieve → format prompt → call LLM → return result
+        result = rag_chain.query(
+            question=request.question,
+            method=request.method
+        )
+        
+        # Return structured response
+        # Pydantic validates the response matches AnswerResponse model
+        return AnswerResponse(
+            answer=result["answer"],
+            sources=result["sources"],
+            method_used=request.method
+        )
+        
+    except Exception as e:
+        # Log error for debugging
+        print(f"Error processing question: {e}")
+        
+        # Return helpful error to client
+        # Don't expose internal details in production
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing question: {str(e)}"
+        )
+
+
+# We'll add HTML chat interface in the next step
