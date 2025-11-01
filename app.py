@@ -15,6 +15,10 @@ Usage:
 import os
 from typing import Dict, Any, Optional
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # FastAPI imports
 from fastapi import FastAPI, HTTPException  # type: ignore
