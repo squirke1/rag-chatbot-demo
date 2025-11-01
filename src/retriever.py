@@ -17,7 +17,7 @@ import pickle
 import argparse
 import numpy as np
 from pathlib import Path
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 
 # Sentence transformers for query embeddings
 from sentence_transformers import SentenceTransformer
@@ -25,21 +25,24 @@ from sentence_transformers import SentenceTransformer
 # FAISS for vector similarity search
 import faiss
 
+from src.configuration import resolve_config_path
+
 # LangChain document structure
 from langchain_core.documents import Document
 
 
-def load_config(config_path: str = "configs/rag.yaml") -> Dict[str, Any]:
+def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Load configuration from YAML file.
     
     Args:
-        config_path: Path to the YAML configuration file
+        config_path: Optional path to the YAML configuration file
         
     Returns:
         Dictionary containing all configuration settings
     """
-    with open(config_path, 'r') as f:
+    resolved_path = resolve_config_path(config_path)
+    with open(resolved_path, 'r') as f:
         config = yaml.safe_load(f)
     return config
 
@@ -378,8 +381,8 @@ def main():
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/rag.yaml",
-        help="Path to configuration file (default: configs/rag.yaml)"
+        default=None,
+        help="Path to configuration file. Defaults to environment via RAG_ENV or RAG_CONFIG_PATH."
     )
     args = parser.parse_args()
     

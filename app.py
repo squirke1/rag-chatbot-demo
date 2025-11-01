@@ -24,6 +24,7 @@ from pydantic import BaseModel
 
 # Our RAG system
 from src.rag_chain import RAGChain
+from src.configuration import resolve_config_path
 
 
 # Global variable to hold RAG chain instance
@@ -44,7 +45,9 @@ async def lifespan(app: FastAPI):
     print("="*60)
     
     try:
-        rag_chain = RAGChain(config_path="configs/rag.yaml")
+        config_path = resolve_config_path()
+        print(f"Using configuration: {config_path}")
+        rag_chain = RAGChain(config_path=config_path)
         print("\nRAG system ready!")
     except Exception as e:
         print(f"\nError initializing RAG system: {e}")

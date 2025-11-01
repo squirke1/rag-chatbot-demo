@@ -72,26 +72,28 @@ export OPENAI_API_KEY="your-api-key-here"
 
 ## Configuration
 
-System parameters are defined in `configs/rag.yaml`:
+Environment-specific configuration files live under `configs/`:
 
-```yaml
-document:
-  chunk_size: 1000          # Characters per chunk
-  chunk_overlap: 200        # Overlap between chunks
+- `configs/rag.dev.yaml` – default for local development, verbose logging, localhost binding.
+- `configs/rag.prod.yaml` – tuned for production deployments, stricter thresholds, public binding.
 
-embeddings:
-  model: "sentence-transformers/all-MiniLM-L6-v2"
-  dimension: 384
+The active file is resolved in this order:
 
-retrieval:
-  top_k: 5                  # Number of documents to retrieve
-  search_type: "similarity" # Options: similarity, mmr, hybrid
+1. Explicit `--config /path/to/file.yaml` CLI argument.
+2. `RAG_CONFIG_PATH=/absolute/or/relative/path.yaml`
+3. `RAG_ENV=dev|prod` (defaults to `dev`).
 
-llm:
-  provider: "openai"
-  model: "gpt-3.5-turbo"
-  temperature: 0.1
+Examples:
+
+```bash
+# Use the production settings
+export RAG_ENV=prod
+
+# Point to a completely custom configuration
+export RAG_CONFIG_PATH=/opt/rag/configs/custom.yaml
 ```
+
+Feel free to duplicate one of the provided YAML files if you need additional environments (e.g., `rag.test.yaml`).
 
 ## Usage
 
@@ -121,6 +123,15 @@ Once the web app is complete, you'll be able to start the server:
 ```bash
 uvicorn app:app --reload
 ```
+
+## Branching Strategy
+
+Local branches `dev` and `test` are available alongside `main`:
+
+- Develop features on `dev`, promote stabilized changes to `test`, and release from `main`.
+- Push the new branches upstream once authenticated:  
+  `git push -u origin dev` and `git push -u origin test`
+- Protect the branches in GitHub as desired (e.g., required reviews or checks).
 
 And access the web interface at `http://localhost:8000`
 

@@ -7,7 +7,7 @@ This module orchestrates the full RAG workflow:
 3. Generate answer using LLM
 
 Usage:
-    rag = RAGChain(config_path="configs/rag.yaml")
+    rag = RAGChain()
     answer = rag.query("What is RAG?")
 """
 
@@ -18,6 +18,7 @@ from typing import Dict, Any, List, Optional
 # Import our custom modules
 from src.retriever import load_vector_store, initialize_embedding_model, similarity_search, mmr_search
 from src.prompt import create_messages_format
+from src.configuration import resolve_config_path
 
 # OpenAI for LLM
 from openai import OpenAI
@@ -38,7 +39,7 @@ class RAGChain:
     This is the "brain" of the RAG system.
     """
     
-    def __init__(self, config_path: str = "configs/rag.yaml"):
+    def __init__(self, config_path: Optional[str] = None):
         """
         Initialize the RAG chain with all components.
         
@@ -49,12 +50,15 @@ class RAGChain:
         4. Initialize OpenAI client
         
         Args:
-            config_path: Path to configuration file
+            config_path: Optional explicit path to configuration file
         """
         print("Initializing RAG Chain...")
-        
+
+        resolved_config_path = resolve_config_path(config_path)
+        print(f"Loading configuration from: {resolved_config_path}")
+
         # Load configuration
-        self.config = self._load_config(config_path)
+        self.config = self._load_config(resolved_config_path)
         
         # Load vector store and embedding model
         print("\nLoading vector store...")
@@ -243,8 +247,8 @@ def main():
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/rag.yaml",
-        help="Path to configuration file (default: configs/rag.yaml)"
+        default=None,
+        help="Path to configuration file. Defaults to environment via RAG_ENV or RAG_CONFIG_PATH."
     )
     args = parser.parse_args()
     
