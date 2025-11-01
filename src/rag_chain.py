@@ -16,8 +16,8 @@ import yaml
 from typing import Dict, Any, List, Optional
 
 # Import our custom modules
-from retriever import load_vector_store, initialize_embedding_model, similarity_search, mmr_search
-from prompt import create_messages_format
+from src.retriever import load_vector_store, initialize_embedding_model, similarity_search, mmr_search
+from src.prompt import create_messages_format
 
 # OpenAI for LLM
 from openai import OpenAI
