@@ -28,14 +28,23 @@ rag-chatbot-demo/
 ├── configs/
 │   └── rag.yaml              # System configuration
 ├── data/                     # Document storage
+│   └── vector_index/         # FAISS index and metadata
+├── docs/
+│   └── CREDENTIALS.md        # Credential management guide
+├── envs/                     # Environment credential files (gitignored)
 ├── notebooks/                # Jupyter notebooks for experimentation
 ├── src/
 │   ├── ingest.py            # Document loading and indexing
 │   ├── retriever.py         # Search strategies (top-k, MMR, hybrid)
 │   ├── prompt.py            # Prompt templates
 │   ├── rag_chain.py         # RAG pipeline orchestration
-│   └── eval.py              # Evaluation metrics
+│   └── eval.py              # Evaluation metrics (planned)
+├── .env.example             # Example environment variables
+├── .env.dev.example         # Development environment template
+├── .env.staging.example     # Staging environment template
+├── .env.prod.example        # Production environment template
 ├── app.py                   # FastAPI web application
+├── requirements.txt         # Python dependencies
 └── README.md
 ```
 
@@ -65,7 +74,28 @@ Install dependencies (requirements file to be added):
 pip install -r requirements.txt
 ```
 
-Configure API keys:
+### Setting Up Credentials
+
+**IMPORTANT: Never commit API keys to Git!**
+
+1. Copy the environment template:
+```bash
+cp .env.example .env
+```
+
+2. Edit `.env` and add your OpenAI API key:
+```bash
+OPENAI_API_KEY=your-actual-api-key-here
+ENVIRONMENT=dev
+DEBUG=True
+LOG_LEVEL=DEBUG
+```
+
+3. Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+
+See [docs/CREDENTIALS.md](docs/CREDENTIALS.md) for detailed credential management instructions.
+
+**Alternative (temporary):**
 ```bash
 export OPENAI_API_KEY="your-api-key-here"
 ```
@@ -112,17 +142,17 @@ This process:
 
 ### Running the Application
 
-*Note: Web interface is currently in development. Use the CLI for now.*
-
-Query via command line:
+Start the FastAPI server:
 ```bash
-python src/rag_chain.py --question "What is RAG?"
+python app.py
 ```
 
-Once the web app is complete, you'll be able to start the server:
-```bash
-uvicorn app:app --reload
-```
+Access the application:
+- **Chat Interface**: http://localhost:8000/chat
+- **API Documentation**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
+
+The server runs with auto-reload enabled for development.
 
 ## Branching Strategy
 
@@ -169,34 +199,40 @@ Documents → Ingest → Vector DB → Retriever → RAG Chain → Response
 ## Implementation Status
 
 **Completed:**
-- Project structure and configuration system
-- Document ingestion pipeline (`src/ingest.py`)
+- ✅ Project structure and configuration system
+- ✅ Document ingestion pipeline (`src/ingest.py`)
   - Multi-format document loading
   - Text chunking with overlap
   - Batch embedding generation
   - FAISS vector index creation
-- Retrieval system (`src/retriever.py`)
+- ✅ Retrieval system (`src/retriever.py`)
   - Similarity search (top-k)
   - MMR (Maximal Marginal Relevance)
   - CLI for testing retrieval
-- Prompt management (`src/prompt.py`)
+- ✅ Prompt management (`src/prompt.py`)
   - System and user prompt templates
   - Context formatting
   - OpenAI messages format support
-- RAG chain (`src/rag_chain.py`)
+- ✅ RAG chain (`src/rag_chain.py`)
   - End-to-end question answering
   - Retrieve → Compose → Generate pipeline
   - CLI for testing Q&A
-
-**In Progress:**
-- Web application (`app.py`)
+- ✅ Web application (`app.py`)
   - FastAPI setup with lifespan management
   - CORS middleware
   - Request/response models
+  - REST API endpoints (/, /health, /ask)
+  - HTML chat interface at /chat
+  - Server startup script
+- ✅ Credential management
+  - Environment-based configuration
+  - .env file support with python-dotenv
+  - Comprehensive documentation
 
 **Planned:**
-- Web interface (HTML/JavaScript UI)
-- Evaluation framework (`src/eval.py`) - optional
+- Evaluation framework (`src/eval.py`)
+- Advanced features (streaming, conversation history)
+- Deployment configuration
 
 ## Technical Details
 
@@ -263,5 +299,5 @@ For questions or feedback, please open an issue on GitHub.
 
 ---
 
-*Last Updated: October 29, 2025*  
-*Status: Core RAG pipeline complete, web interface in progress*
+*Last Updated: November 1, 2025*  
+*Status: Full RAG system complete with web interface*
