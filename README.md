@@ -277,7 +277,7 @@ This project follows an incremental development process with proper Git Flow and
 
 ## Git Flow Branching Strategy
 
-This project uses **Git Flow** for organized development and deployment:
+This project uses a **Git Flow variant** optimized for continuous deployment:
 
 ### Branch Structure
 
@@ -291,12 +291,15 @@ dev (development)
 feature/* (feature branches)
 ```
 
+**Note:** This is a variation of standard Git Flow that uses `dev`/`test`/`main` instead of `develop`/`release`/`main`. The workflow principles remain the same, but branch names are tailored for clarity in CI/CD environments.
+
 ### Branches
 
-- **`main`** - Production-ready code, protected branch
-- **`test`** - Staging/testing environment, auto-deploys to staging
-- **`dev`** - Active development, all features merge here first
+- **`main`** - Production-ready code, protected branch, requires approval for deployment
+- **`test`** - Staging/testing environment, auto-deploys to staging for QA validation
+- **`dev`** - Active development branch, all features merge here first, runs CI tests
 - **`feature/*`** - Individual feature branches (e.g., `feature/add-streaming`)
+- **`detailed-comments`** - Special branch with educational comments (parallel to main)
 
 ### Workflow
 
@@ -374,6 +377,18 @@ To enable environment protection (recommended for production):
    - Add **Deployment branches** rule (only `main`)
 
 This ensures production deployments require manual approval! 🔐
+
+### Why This Branching Strategy?
+
+This project uses **`dev`/`test`/`main`** instead of the traditional Git Flow **`develop`/`release`/`main`** for several reasons:
+
+1. **Clarity in CI/CD**: Branch names directly correspond to environments (dev, test/staging, production)
+2. **Intuitive naming**: `test` clearly indicates "testing/staging", `dev` indicates "development"
+3. **Industry adoption**: Many modern teams use similar naming (e.g., GitHub's `main`, GitLab's `staging`)
+4. **Simplified workflow**: Eliminates confusion between `release` branches and staging environments
+5. **CI/CD integration**: Easier to map branches to deployment targets in GitHub Actions
+
+The **workflow principles** remain identical to standard Git Flow—only the branch names differ. This is a common and accepted variation used by many professional development teams.
 
 ## References
 
