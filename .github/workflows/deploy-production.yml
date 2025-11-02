@@ -87,7 +87,8 @@ jobs:
       #   uses: google-github-actions/deploy-cloudrun@v2
       #   with:
       #     service: rag-chatbot
-      #     image: gcr.io/${{ secrets.GCP_PROJECT }}/rag-chatbot:${{ github.sha }}
+      #     image: gcr.io/${{ secrets.GCP_PROJECT }}/\
+      #       rag-chatbot:${{ github.sha }}
       #     region: us-central1
 
       # For Docker + Custom Server:
@@ -95,7 +96,8 @@ jobs:
       #   run: |
       #     docker build -t your-app:production .
       #     docker push your-registry/your-app:production
-      #     ssh user@server 'docker pull your-app:production && docker-compose up -d'
+      #     ssh user@server \
+      #       'docker pull your-app:production && docker-compose up -d'
 
       - name: Production deployment simulation
         run: |
