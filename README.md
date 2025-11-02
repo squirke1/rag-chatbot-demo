@@ -1,5 +1,7 @@
 # RAG Chatbot Demo
 
+> A production-ready RAG system with CI/CD pipeline
+
 A modular implementation of a Retrieval-Augmented Generation (RAG) system for question-answering over custom document collections.
 
 ## Overview
