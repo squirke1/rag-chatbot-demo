@@ -53,8 +53,10 @@ jobs:
 
       - name: Verify imports
         run: |
-          python -c "from src.rag_chain import RAGChain; print('✓ Imports OK')"
-          python -c "from src.configuration import resolve_config_path; print('✓ Config OK')"
+          python -c "from src.rag_chain import RAGChain; \
+            print('✓ Imports OK')"
+          python -c "from src.configuration import resolve_config_path; \
+            print('✓ Config OK')"
 
       - name: Check static files
         run: |
@@ -83,9 +85,11 @@ jobs:
       - name: Run flake8
         run: |
           # Stop build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --select=E9,F63,F7,F82 \
+            --show-source --statistics
           # Exit-zero treats all errors as warnings
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 . --count --exit-zero --max-complexity=10 \
+            --max-line-length=127 --statistics
         continue-on-error: true
 
       - name: Check code formatting (black)
@@ -107,7 +111,9 @@ jobs:
       - name: Check for secrets
         run: |
           # Ensure no .env files are committed (except .example files)
-          if git ls-files | grep -E '^\.env$|^\.env\.dev$|^\.env\.staging$|^\.env\.prod$'; then
+          if git ls-files | \
+            grep -E '^\.env$|^\.env\.dev$|^\.env\.staging$|^\.env\.prod$'; \
+          then
             echo "❌ ERROR: .env files should not be committed!"
             exit 1
           else
@@ -117,6 +123,8 @@ jobs:
       - name: Verify .gitignore
         run: |
           # Check that important patterns are in .gitignore
-          grep -q ".env" .gitignore || (echo "❌ .env not in .gitignore" && exit 1)
-          grep -q "__pycache__" .gitignore || (echo "❌ __pycache__ not in .gitignore" && exit 1)
+          grep -q ".env" .gitignore || \
+            (echo "❌ .env not in .gitignore" && exit 1)
+          grep -q "__pycache__" .gitignore || \
+            (echo "❌ __pycache__ not in .gitignore" && exit 1)
           echo "✓ .gitignore properly configured"
