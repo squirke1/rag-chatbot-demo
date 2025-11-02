@@ -68,16 +68,17 @@ jobs:
       - name: Deployment simulation (replace with actual deployment)
         run: |
           echo "🚀 Deploying to staging environment..."
-          echo "📦 Application: RAG Chatbot"
+          echo "📦 Application: RAG Chatbot Demo"
           echo "🌍 Environment: Staging"
           echo "✅ Deployment successful!"
           echo ""
-          echo "Staging URL would be: https://staging.your-domain.com"
+          echo "Note: Actual deployment not configured yet."
+          echo "When ready, configure deployment to your hosting platform."
       
       - name: Health check
         run: |
-          echo "Would perform health check on staging server here"
-          echo "curl https://staging.your-domain.com/health"
+          echo "Health check would run here when deployed"
+          echo "Example: curl https://staging-rag-chatbot.yourdomain.com/health"
       
       - name: Notify deployment
         if: success()

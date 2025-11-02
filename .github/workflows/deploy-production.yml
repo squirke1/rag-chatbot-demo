@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: 
       name: production
-      url: https://your-domain.com  # Your production URL
+      url: https://github.com/squirke1/rag-chatbot-demo  # Update when deployed
     
     steps:
       - name: Checkout code
@@ -100,14 +100,19 @@ jobs:
       - name: Production deployment simulation
         run: |
           echo "🚀 Deploying to PRODUCTION environment..."
-          echo "📦 Application: RAG Chatbot"
+          echo "📦 Application: RAG Chatbot Demo"
           echo "🌍 Environment: Production"
           echo "🔖 Version: $(git rev-parse --short HEAD)"
           echo "✅ Deployment successful!"
           echo ""
-          echo "Production URL: https://your-domain.com"
+          echo "Note: Actual deployment not configured yet."
+          echo "When ready, configure deployment to your hosting platform."
       
       - name: Health check
+        run: |
+          echo "Performing production health check..."
+          echo "Example: curl https://rag-chatbot.yourdomain.com/health"
+          echo "✅ Would verify application is healthy"
         run: |
           echo "Performing production health check..."
           echo "curl https://your-domain.com/health"
