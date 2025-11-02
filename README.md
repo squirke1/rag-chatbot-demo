@@ -265,7 +265,7 @@ Documents → Ingest → Vector DB → Retriever → RAG Chain → Response
 
 ## Development Approach
 
-This project follows an incremental development process:
+This project follows an incremental development process with proper Git Flow and CI/CD:
 
 1. Configuration - Define system parameters
 2. Document ingestion - Text processing and embedding generation
@@ -274,6 +274,106 @@ This project follows an incremental development process:
 5. Chain integration - End-to-end pipeline
 6. Evaluation - Performance metrics
 7. API development - Web interface
+
+## Git Flow Branching Strategy
+
+This project uses **Git Flow** for organized development and deployment:
+
+### Branch Structure
+
+```
+main (production)
+  ↑
+test (staging)
+  ↑
+dev (development)
+  ↑
+feature/* (feature branches)
+```
+
+### Branches
+
+- **`main`** - Production-ready code, protected branch
+- **`test`** - Staging/testing environment, auto-deploys to staging
+- **`dev`** - Active development, all features merge here first
+- **`feature/*`** - Individual feature branches (e.g., `feature/add-streaming`)
+
+### Workflow
+
+1. **Create feature branch** from `dev`:
+   ```bash
+   git checkout dev
+   git pull origin dev
+   git checkout -b feature/your-feature
+   ```
+
+2. **Develop and commit**:
+   ```bash
+   git add .
+   git commit -m "feat: add your feature"
+   git push origin feature/your-feature
+   ```
+
+3. **Create Pull Request** to `dev` (triggers CI tests)
+
+4. **Merge to dev** → Auto-runs CI pipeline
+
+5. **Promote to test** for staging deployment:
+   ```bash
+   git checkout test
+   git merge dev
+   git push origin test  # Auto-deploys to staging
+   ```
+
+6. **Promote to main** for production (requires approval):
+   ```bash
+   git checkout main
+   git merge test
+   git push origin main  # Auto-deploys to production
+   ```
+
+## CI/CD Pipeline
+
+### Continuous Integration (`.github/workflows/ci.yml`)
+
+Runs automatically on PRs and pushes to `dev`, `test`:
+
+- ✅ **Code Quality**: Syntax checking, linting (flake8, black, isort)
+- ✅ **Tests**: Import verification, file structure checks
+- ✅ **Security**: Secret detection, .gitignore validation
+
+### Staging Deployment (`.github/workflows/deploy-staging.yml`)
+
+Triggers on push to `test` branch:
+
+- 🚀 Automated deployment to staging environment
+- 🧪 Pre-deployment tests
+- 🏥 Health checks
+- 📢 Deployment notifications
+
+### Production Deployment (`.github/workflows/deploy-production.yml`)
+
+Triggers on push to `main` branch:
+
+- 🔒 Requires manual approval (GitHub Environment protection)
+- 🔍 Comprehensive security scans
+- ✅ Full test suite
+- 🚀 Production deployment
+- 📊 Deployment tracking
+- 🚨 Failure notifications
+
+### Setting Up GitHub Environments
+
+To enable environment protection (recommended for production):
+
+1. Go to your GitHub repo → **Settings** → **Environments**
+2. Create `staging` and `production` environments
+3. For `production`:
+   - Enable **Required reviewers** (add yourself)
+   - Set **Wait timer** (optional, e.g., 5 minutes)
+   - Add **Deployment branches** rule (only `main`)
+
+This ensures production deployments require manual approval! 🔐
 
 ## References
 
