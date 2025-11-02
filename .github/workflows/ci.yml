@@ -40,7 +40,7 @@ jobs:
       - name: Check for common issues
         run: |
           # Verify required files exist
-          test -f config/config.yaml
+          test -f configs/rag.yaml
           test -f .env.example
           test -f requirements.txt
           
@@ -49,6 +49,7 @@ jobs:
           test -d static
           test -d templates
           test -d data
+          test -d configs
       
       - name: Verify imports
         run: |
