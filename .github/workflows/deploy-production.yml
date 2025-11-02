@@ -113,10 +113,6 @@ jobs:
           echo "Performing production health check..."
           echo "Example: curl https://rag-chatbot.yourdomain.com/health"
           echo "✅ Would verify application is healthy"
-        run: |
-          echo "Performing production health check..."
-          echo "curl https://your-domain.com/health"
-          echo "✅ Application is healthy"
       
       - name: Create deployment record
         run: |
