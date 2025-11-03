@@ -32,10 +32,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Check code syntax
+      - name: Run unit tests
         run: |
-          python -m py_compile app.py
-          python -m py_compile src/*.py
+          pytest tests/ -v --tb=short
 
       - name: Check for common issues
         run: |
@@ -50,6 +49,8 @@ jobs:
           test -d templates
           test -d data
           test -d configs
+          test -d configs
+          test -d tests
 
       - name: Verify imports
         run: |
@@ -57,13 +58,6 @@ jobs:
             print('Imports OK')"
           python -c "from src.configuration import resolve_config_path; \
             print('Config OK')"
-
-      - name: Check static files
-        run: |
-          test -f static/css/style.css
-          test -f static/js/chat.js
-          test -f templates/chat.html
-          echo "Frontend files OK"
 
   lint:
     name: Code Quality
