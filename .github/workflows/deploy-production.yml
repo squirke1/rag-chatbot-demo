@@ -117,7 +117,7 @@ jobs:
           # Example for Slack:
           # curl -X POST -H 'Content-type: application/json' \
           #   --data '{"text":"Production deployed successfully!"}' \
-          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+          #   YOUR_SLACK_WEBHOOK_URL
 
   notify-failure:
     name: Notify Failure
