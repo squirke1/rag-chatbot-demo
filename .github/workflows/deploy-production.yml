@@ -113,12 +113,6 @@ jobs:
           echo "Deployed by: ${{ github.actor }}"
           echo "Time: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-          # You can add Slack/Discord/Email notifications here
-          # Example for Slack:
-          # curl -X POST -H 'Content-type: application/json' \
-          #   --data '{"text":"Production deployed successfully!"}' \
-          #   YOUR_SLACK_WEBHOOK_URL
-
   notify-failure:
     name: Notify Failure
     needs: deploy-production
