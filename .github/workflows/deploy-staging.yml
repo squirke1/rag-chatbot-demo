@@ -31,7 +31,7 @@ jobs:
         run: |
           python -m py_compile app.py
           python -m py_compile src/*.py
-          echo "✓ All tests passed"
+          echo "All tests passed"
 
       - name: Prepare deployment
         run: |
@@ -67,10 +67,10 @@ jobs:
 
       - name: Deployment simulation (replace with actual deployment)
         run: |
-          echo "🚀 Deploying to staging environment..."
-          echo "📦 Application: RAG Chatbot Demo"
-          echo "🌍 Environment: Staging"
-          echo "✅ Deployment successful!"
+          echo "Deploying to staging environment..."
+          echo "Application: RAG Chatbot Demo"
+          echo "Environment: Staging"
+          echo "Deployment successful!"
           echo ""
           echo "Note: Actual deployment not configured yet."
           echo "When ready, configure deployment to your hosting platform."
@@ -83,7 +83,7 @@ jobs:
       - name: Notify deployment
         if: success()
         run: |
-          echo "✅ Staging deployment completed successfully"
+          echo "Staging deployment completed successfully"
           echo "Commit: ${{ github.sha }}"
           echo "Deployed by: ${{ github.actor }}"
 
@@ -97,7 +97,7 @@ jobs:
       - name: Deployment status
         run: |
           if [ "${{ needs.deploy-staging.result }}" == "success" ]; then
-            echo "✅ Staging deployment SUCCESSFUL"
+            echo "Staging deployment SUCCESSFUL"
           else
-            echo "❌ Staging deployment FAILED"
+            echo "Staging deployment FAILED"
           fi

@@ -54,16 +54,16 @@ jobs:
       - name: Verify imports
         run: |
           python -c "from src.rag_chain import RAGChain; \
-            print('✓ Imports OK')"
+            print('Imports OK')"
           python -c "from src.configuration import resolve_config_path; \
-            print('✓ Config OK')"
+            print('Config OK')"
 
       - name: Check static files
         run: |
           test -f static/css/style.css
           test -f static/js/chat.js
           test -f templates/chat.html
-          echo "✓ Frontend files OK"
+          echo "Frontend files OK"
 
   lint:
     name: Code Quality
@@ -114,17 +114,17 @@ jobs:
           if git ls-files | \
             grep -E '^\.env$|^\.env\.dev$|^\.env\.staging$|^\.env\.prod$'; \
           then
-            echo "❌ ERROR: .env files should not be committed!"
+            echo "ERROR: .env files should not be committed!"
             exit 1
           else
-            echo "✓ No sensitive .env files committed"
+            echo "No sensitive .env files committed"
           fi
 
       - name: Verify .gitignore
         run: |
           # Check that important patterns are in .gitignore
           grep -q ".env" .gitignore || \
-            (echo "❌ .env not in .gitignore" && exit 1)
+            (echo "ERROR: .env not in .gitignore" && exit 1)
           grep -q "__pycache__" .gitignore || \
-            (echo "❌ __pycache__ not in .gitignore" && exit 1)
-          echo "✓ .gitignore properly configured"
+            (echo "ERROR: __pycache__ not in .gitignore" && exit 1)
+          echo ".gitignore properly configured"
