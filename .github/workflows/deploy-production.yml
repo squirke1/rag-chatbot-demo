@@ -37,7 +37,7 @@ jobs:
           python -m py_compile src/*.py
 
           # Verify all critical files
-          test -f config/config.yaml
+          test -f configs/rag.yaml
           test -f .env.example
           test -f static/css/style.css
           test -f static/js/chat.js
