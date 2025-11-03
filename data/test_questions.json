@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What is RAG?",
+    "ground_truth": "RAG stands for Retrieval-Augmented Generation, a technique that enhances language model responses by retrieving relevant information from a knowledge base before generating answers."
+  },
+  {
+    "question": "How does document chunking work?",
+    "ground_truth": "Document chunking involves splitting large documents into smaller, manageable pieces with configurable size and overlap to enable efficient retrieval and processing."
+  },
+  {
+    "question": "What embedding model is used?",
+    "ground_truth": "The system uses sentence-transformers/all-MiniLM-L6-v2 model for generating embeddings with 384 dimensions."
+  },
+  {
+    "question": "What is the purpose of vector similarity search?",
+    "ground_truth": "Vector similarity search finds the most relevant documents by comparing the semantic similarity between query embeddings and document embeddings in the vector database."
+  },
+  {
+    "question": "What is MMR and why is it useful?",
+    "ground_truth": "MMR (Maximal Marginal Relevance) is a retrieval strategy that balances relevance and diversity, helping to avoid redundant results while maintaining high relevance to the query."
+  }
+]

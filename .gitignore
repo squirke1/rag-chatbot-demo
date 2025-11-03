@@ -215,3 +215,4 @@ __marimo__/
 data/vector_index/
 logs/
 *.ipynb_checkpoints
+PROJECT_STRUCTURE.md
