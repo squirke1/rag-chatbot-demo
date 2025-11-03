@@ -50,11 +50,11 @@ class RAGEvaluator:
         
         # Initialize embedding model for metric calculations
         embedding_config = self.config['embeddings']
-        self.embedding_model = SentenceTransformer(embedding_config['model_name'])
+        self.embedding_model = SentenceTransformer(embedding_config['model'])
         
         print(f"✓ RAG Evaluator initialized")
         print(f"  Configuration: {self.config_path}")
-        print(f"  Embedding model: {embedding_config['model_name']}")
+        print(f"  Embedding model: {embedding_config['model']}")
     
     def answer_relevancy(self, question: str, answer: str) -> float:
         """
@@ -222,10 +222,13 @@ class RAGEvaluator:
         Returns:
             Dictionary containing all metrics and the generated answer
         """
-        # Get RAG response
-        result = self.rag_chain.query(question=question, method=method)
+        # Get RAG response with context
+        result = self.rag_chain.query(question=question, method=method, return_context=True)
         answer = result["answer"]
-        contexts = result["retrieved_docs"]
+        documents = result.get("context", [])
+        
+        # Extract text content from documents
+        contexts = [doc.page_content if hasattr(doc, 'page_content') else str(doc) for doc in documents]
         
         # Calculate metrics
         metrics = {
