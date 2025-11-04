@@ -216,3 +216,10 @@ data/vector_index/
 logs/
 *.ipynb_checkpoints
 PROJECT_STRUCTURE.md
+evaluation_results.json
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
