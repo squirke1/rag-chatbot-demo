@@ -217,6 +217,8 @@ logs/
 *.ipynb_checkpoints
 PROJECT_STRUCTURE.md
 evaluation_results.json
+RAG_CHATBOT_PROJECT_DOCUMENTATION.md
+RAG_CHATBOT_PROJECT_DOCUMENTATION.docx
 
 # macOS
 .DS_Store
