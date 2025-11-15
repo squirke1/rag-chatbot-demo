@@ -222,6 +222,7 @@ RAG_CHATBOT_PROJECT_DOCUMENTATION.docx
 BLOG_POST.md
 BLOG_POST.docx
 convert_to_docx.py
+DIAGRAM_INSTRUCTIONS.md
 
 # macOS
 .DS_Store
