@@ -219,6 +219,9 @@ PROJECT_STRUCTURE.md
 evaluation_results.json
 RAG_CHATBOT_PROJECT_DOCUMENTATION.md
 RAG_CHATBOT_PROJECT_DOCUMENTATION.docx
+BLOG_POST.md
+BLOG_POST.docx
+convert_to_docx.py
 
 # macOS
 .DS_Store
