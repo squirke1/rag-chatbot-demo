@@ -141,7 +141,8 @@ class RAGChain:
         self, 
         question: str, 
         method: str = "similarity",
-        return_context: bool = False
+        return_context: bool = False,
+        raise_on_error: bool = False
     ) -> Dict[str, Any]:
         """
         Complete RAG query: Retrieve → Compose → Generate
@@ -162,6 +163,8 @@ class RAGChain:
             question: User's question
             method: Retrieval method - "similarity" or "mmr"
             return_context: If True, include retrieved documents in response
+            raise_on_error: If True, let LLM errors propagate to the caller.
+                If False (default), return the error text as the answer.
             
         Returns:
             Dictionary with:
@@ -197,6 +200,8 @@ class RAGChain:
             print("Answer generated successfully!")
             
         except Exception as e:
+            if raise_on_error:
+                raise
             print(f"Error generating answer: {e}")
             answer = f"Error: Could not generate answer. {str(e)}"
         
